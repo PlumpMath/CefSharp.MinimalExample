@@ -1,0 +1,58 @@
+﻿<html>
+<head>
+    <title>Object Binding Test Page</title>
+    <script type="text/javascript" src="jquery-1.5.1.js"></script>
+    <script type="text/javascript">
+
+        async function sayHello(name)
+        {
+            await CefSharp.BindObjectAsync("exampleObjectAsync");
+
+            var retval = exampleObjectAsync.sayHello(name);
+            retval.then(function (res)
+            {
+                $('#TextBox1').val(res);
+            });
+        };
+
+        async function sayGoodbye(name) {
+
+            await window['CefSharp'].BindObjectAsync('exampleObjectAsync')
+            .then(result => {
+                if (result.Success) {
+                this.selectedChannelAsync = window['exampleObjectAsync'];
+                }
+            })
+            .catch(error => {
+                console.log(error);
+            });
+
+            // await CefSharp.BindObjectAsync("exampleObjectAsync");
+
+            // var retval = exampleObjectAsync.getSubObject();
+            
+            // retval.then(function(subObj) {
+            //     alert(subObj);
+            //     subObj.sayGoodbye(name).then(function (result) {
+            //         $('#TextBox1').val(result);
+            //     });                
+            // });
+        };
+
+    </script>
+</head>
+<body>
+    <h1>
+        Testing page for object binding experiments
+    </h1>
+    <form>
+        <div>Text Box 1:</div>
+        <input type="text" id="TextBox1" />
+        <br />
+        <button type="button" onclick="window.location.reload();">Reload Page</button>
+        <button type="button" onclick="sayHello('Yuri');">Say Hello</button>
+        <button type="button" onclick="sayGoodbye('Yuri');">Say Goodbye</button>
+
+    </form>
+</body>
+</html>

@@ -3,6 +3,8 @@
 // Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 using System;
+using System.IO;
+using System.Reflection;
 using System.Windows.Forms;
 using CefSharp.MinimalExample.WinForms.Controls;
 using CefSharp.WinForms;
@@ -11,6 +13,19 @@ namespace CefSharp.MinimalExample.WinForms
 {
     public partial class BrowserForm : Form
     {
+        public static string AssemblyDirectory
+        {
+            get
+            {
+                string codeBase = Assembly.GetExecutingAssembly().CodeBase;
+                UriBuilder uri = new UriBuilder(codeBase);
+                string path = Uri.UnescapeDataString(uri.Path);
+                return Path.GetDirectoryName(path);
+            }
+        }
+
+        private ExampleBoundObject boundObject = new ExampleBoundObject();
+
         private readonly ChromiumWebBrowser browser;
 
         public BrowserForm()
@@ -18,12 +33,15 @@ namespace CefSharp.MinimalExample.WinForms
             InitializeComponent();
 
             Text = "CefSharp";
-            WindowState = FormWindowState.Maximized;
+           // WindowState = FormWindowState.Maximized;
 
-            browser = new ChromiumWebBrowser("www.google.com")
+            var testpagePath = AssemblyDirectory + @"\Resources\binding-tests.html";
+            
+            browser = new ChromiumWebBrowser(testpagePath)
             {
                 Dock = DockStyle.Fill,
             };
+            
             toolStripContainer.ContentPanel.Controls.Add(browser);
 
             browser.LoadingStateChanged += OnLoadingStateChanged;
@@ -31,10 +49,28 @@ namespace CefSharp.MinimalExample.WinForms
             browser.StatusMessage += OnBrowserStatusMessage;
             browser.TitleChanged += OnBrowserTitleChanged;
             browser.AddressChanged += OnBrowserAddressChanged;
+            browser.JavascriptObjectRepository.ResolveObject += JavascriptObjectRepository_ResolveObject;
 
             var bitness = Environment.Is64BitProcess ? "x64" : "x86";
             var version = String.Format("Chromium: {0}, CEF: {1}, CefSharp: {2}, Environment: {3}", Cef.ChromiumVersion, Cef.CefVersion, Cef.CefSharpVersion, bitness);
             DisplayOutput(version);
+        }
+
+        private void JavascriptObjectRepository_ResolveObject(object sender, Event.JavascriptBindingEventArgs e)
+        {
+			//only makes sense for testing - anything you request gets bound to the test object
+            Console.WriteLine($"Browser requests to resolve object: {e.ObjectName}, in repo: {e.ObjectRepository}");
+            
+            var repo = e.ObjectRepository;
+            
+            if (!repo.IsBound(e.ObjectName))
+            {
+                repo.Register(e.ObjectName, boundObject, true);
+            }
+            else
+            {
+                MessageBox.Show("Attempted to re-bind object - should not happen!");
+            }            
         }
 
         private void OnBrowserConsoleMessage(object sender, ConsoleMessageEventArgs args)
@@ -155,4 +191,6 @@ namespace CefSharp.MinimalExample.WinForms
             browser.ShowDevTools();
         }
     }
+
+
 }
