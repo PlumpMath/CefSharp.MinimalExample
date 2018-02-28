@@ -18,11 +18,9 @@ namespace CefSharp.MinimalExample.WinForms
 
         public ChildBoundObject GetSubObject(string name) { return new ChildBoundObject { Name = name }; }
 
-        public ChildBoundObject[] GetSubObjects(object namess)
+        public ChildBoundObject[] GetSubObjects(List<object> names)
         {
-            var names = new[] { "Yuri", "Boris", "Cleo" };
-
-            var objects = new List<ChildBoundObject>(names.Length);
+            var objects = new List<ChildBoundObject>(names.Count);
 
             foreach(var name in names)
             {
