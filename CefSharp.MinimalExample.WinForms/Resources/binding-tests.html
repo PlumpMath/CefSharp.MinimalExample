@@ -8,35 +8,60 @@
         {
             await CefSharp.BindObjectAsync("exampleObjectAsync");
 
-            var retval = exampleObjectAsync.sayHello(name);
+            var retval = exampleObjectAsync.setName(name);
             retval.then(function (res)
             {
-                $('#TextBox1').val(res);
+                exampleObjectAsync.sayHello()
+                .then(function (message) {
+                    $('#TextBox1').val(message);
+                });
             });
         };
 
         async function sayGoodbye(name) {
-
-            await window['CefSharp'].BindObjectAsync('exampleObjectAsync')
-            .then(result => {
-                if (result.Success) {
-                this.selectedChannelAsync = window['exampleObjectAsync'];
-                }
-            })
-            .catch(error => {
-                console.log(error);
-            });
-
-            // await CefSharp.BindObjectAsync("exampleObjectAsync");
-
-            // var retval = exampleObjectAsync.getSubObject();
             
-            // retval.then(function(subObj) {
-            //     alert(subObj);
-            //     subObj.sayGoodbye(name).then(function (result) {
-            //         $('#TextBox1').val(result);
-            //     });                
-            // });
+             await CefSharp.BindObjectAsync("exampleObjectAsync");
+
+             var retval = exampleObjectAsync.getSubObject(name);
+            
+             retval.then(function (subObj) {
+                 //bug: never returns
+                 alert(subObj[0]);
+                 subObj[0].sayGoodbye(name).then(function (result) {
+                     $('#TextBox1').val("Goodbye " + result);
+                 });                
+             });
+        };
+
+        async function sayGoodbyes(names) {
+
+            await CefSharp.BindObjectAsync("exampleObjectAsync");
+
+            var retval = exampleObjectAsync.getSubObjects(names);
+            var message = 'Goodbye ';
+
+            retval.then(function (subObj) {
+                var len = subObj.length;
+                for (var i = 0; i < len; i++) {
+
+                    if (subObj[i].getName != undefined) {
+
+                        //was expecting to then access GetName method via async style - but method does not exist!
+                        //it must be possible to call methods on child objects
+                        subObj[i].getName().then(function (result) {
+                            $('#TextBox1').val($('#TextBox1').val + result);
+                        });
+
+                    }
+
+                    if (subObj[i].Name != undefined) {
+                        //seems we have a sync object returned - that's probably not correct!
+                        message = message + subObj[i].Name + " ";
+                        $('#TextBox1').val(message);
+                    }
+                }
+               
+            });
         };
 
     </script>
@@ -52,6 +77,7 @@
         <button type="button" onclick="window.location.reload();">Reload Page</button>
         <button type="button" onclick="sayHello('Yuri');">Say Hello</button>
         <button type="button" onclick="sayGoodbye('Yuri');">Say Goodbye</button>
+        <button type="button" onclick="sayGoodbyes(['Yuri','Boris','Cleo']);">Say Goodbyes</button>
 
     </form>
 </body>

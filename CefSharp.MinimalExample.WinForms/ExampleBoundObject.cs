@@ -8,13 +8,39 @@ namespace CefSharp.MinimalExample.WinForms
 {
     public class ExampleBoundObject
     {
-        public string SayHello(string name) { return $"Hello {name}!"; }
+        public string Name { get; set; }
 
-        public ChildBoundObject GetSubObject() { return new ChildBoundObject(); }
+        public void SetName(string name) { Name = name; }
+
+        public string GetName() { return Name; }
+
+        public string SayHello() { return $"Hello {Name}!"; }
+
+        public ChildBoundObject GetSubObject(string name) { return new ChildBoundObject { Name = name }; }
+
+        public ChildBoundObject[] GetSubObjects(object namess)
+        {
+            var names = new[] { "Yuri", "Boris", "Cleo" };
+
+            var objects = new List<ChildBoundObject>(names.Length);
+
+            foreach(var name in names)
+            {
+                objects.Add(new ChildBoundObject() { Name = name.ToString() });
+            }
+
+            return objects.ToArray();
+        }
     }
 
     public class ChildBoundObject
     {
-        public string SayGoodbye(string name) { return $"Goodbye {name}!"; }
+        public string Name { get; set; }
+
+        public void SetName(string name) { Name = name; }
+
+        public string GetName() { return Name; }
+
+        public string SayGoodbye() { return $"Goodbye {Name}!"; }
     }
 }
